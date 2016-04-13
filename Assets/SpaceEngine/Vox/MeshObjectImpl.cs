@@ -22,7 +22,7 @@ public abstract class MeshObjectImpl : IMeshObject
 
     public abstract Mesh MeshObjectGetMesh();
 
-    public virtual IVoxListener MeshObjectListener()
+    public virtual IMeshEventListener MeshObjectListener()
     {
         return null;
     }

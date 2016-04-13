@@ -45,7 +45,7 @@ public class CylinderLedMatrix : LedMatrix
         top = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         top.name = "top";
         top.transform.localScale = new Vector3(ledseq.radius * 2.2f, 2f, ledseq.radius * 2.2f);
-        top.transform.position = new Vector3(-70f, height * floorCounter * 1.15f, 0f);
+        top.transform.position = new Vector3(-70f, height * floorCounter * 1.3f, 0f);
         top.GetComponent<MeshRenderer>().material = new Material(Shader.Find("Diffuse"));
 
         Vector3[][] positions = ledseq.positions;

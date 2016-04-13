@@ -36,9 +36,9 @@ public class CubeVoxManager : DefaultVoxManager
         return new CubeLedSeq(LEDX, LEDY, LEDZ);
     }
 
-    protected override MeshVox initMeshVox(LedSeq s, Bounds b, HashSet<IMeshObject> ss, HashSet<IVoxListener> liss)
+    protected override MeshVox initMeshVox(LedSeq s, Bounds b, HashSet<IMeshObject> ss)
     {
-        return new CubeMeshVox(s as CubeLedSeq, b, ss, liss);
+        return new CubeMeshVox(s as CubeLedSeq, b, ss);
     }
 
     protected override ParticleVox initParticleVox(LedSeq s, Bounds b, HashSet<IParticleObject> ss)

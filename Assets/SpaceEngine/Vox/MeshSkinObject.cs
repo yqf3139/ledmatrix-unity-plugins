@@ -7,6 +7,7 @@ using UnityEngine;
 public class MeshSkinObject : MonoBehaviour, IMeshObject
 {
     IMeshObject impl;
+    public IMeshEventListener listener = null;
 
     void Start()
     {
@@ -33,8 +34,12 @@ public class MeshSkinObject : MonoBehaviour, IMeshObject
         return impl.MeshObjectTransformPoint(v);
     }
 
-    public IVoxListener MeshObjectListener()
+    public IMeshEventListener MeshObjectListener()
     {
+        if (listener != null)
+        {
+            return listener;
+        }
         return impl.MeshObjectListener();
     }
 }

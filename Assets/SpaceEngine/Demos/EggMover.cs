@@ -11,6 +11,7 @@ public class EggMover : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        o = GetComponent<IMeshObject>();
         id = counter++;
         //o = new IMeshObject
         //{
@@ -18,15 +19,15 @@ public class EggMover : MonoBehaviour
         //    mode = MeshMode.MeshFilterMode,
         //    transform = transform,
         //};
-        DefaultVoxManager.getDefault().objs.Add(o);
-        Debug.Log("mover");
+        DefaultVoxManager.objs.Add(o);
+        Debug.Log("mover"+o);
     }
 
     void OnCollisionEnter(Collision col)
     {
         if (col.gameObject.name.Contains("Hand"))
         {
-            //DefaultVoxManager.getDefault().onBubble(col.gameObject.transform.position);
+            DefaultVoxManager.getDefault().onBubble(col.gameObject.transform.position);
             suicide();
         }
     }
@@ -42,11 +43,11 @@ public class EggMover : MonoBehaviour
 
     void suicide()
     {
-        DefaultVoxManager.getDefault().objs.Remove(o);
         if (id == 0)
         {
             return;
         }
+        Debug.Log("suicide " + DefaultVoxManager.objs.Remove(o));
         Destroy(gameObject);
     }
 }

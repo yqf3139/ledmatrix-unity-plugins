@@ -38,9 +38,9 @@ public class CylinderVoxManager : DefaultVoxManager
         return new CylinderLeqSeq(floorCounter, roundsCounter, distance, height, pillar);
     }
 
-    protected override MeshVox initMeshVox(LedSeq s, Bounds b, HashSet<IMeshObject> ss, HashSet<IVoxListener> liss)
+    protected override MeshVox initMeshVox(LedSeq s, Bounds b, HashSet<IMeshObject> ss)
     {
-        return new CylinderMeshVox(s as CylinderLeqSeq, b, ss, liss);
+        return new CylinderMeshVox(s as CylinderLeqSeq, b, ss);
     }
 
     protected override ParticleVox initParticleVox(LedSeq s, Bounds b, HashSet<IParticleObject> ss)

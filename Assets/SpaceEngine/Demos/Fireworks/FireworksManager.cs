@@ -15,7 +15,7 @@ public class FireworkMessage
     public float y;
 }
 
-public class FireworksManager : CylinderVoxManager {
+public class FireworksManager : MonoBehaviour, IParticleEventListener {
 
     Thread touchControlThread;
 
@@ -84,22 +84,8 @@ public class FireworksManager : CylinderVoxManager {
         Debug.Log("touchControl TCP thread end");
     }
 
-    protected override void initWorkers(HashSet<Thread> s)
+    void Start()
     {
-        base.initWorkers(s);
-        //touchControlThread = new Thread(touchControl);
-        //s.Add(touchControlThread);
-    }
-
-    protected override void initConfig()
-    {
-        base.initConfig();
-        NeedObjectVox = false;
-    }
-
-    protected override void initParticleObjects(HashSet<IParticleObject> s)
-    {
-        base.initParticleObjects(s);
         for (int i = 0; i < 8; i++)
         {
             GameObject go = GameObject.Find("/PS" + i);
@@ -114,11 +100,20 @@ public class FireworksManager : CylinderVoxManager {
         {
             po[8] = fountain.GetComponent<IParticleObject>();
         }
+
+        touchControlThread = new Thread(touchControl);
+        touchControlThread.Start();
     }
 
-    public override void onTouch(Vector3 e)
+    void OnDisable()
     {
-        base.onTouch(e);
+        touchControlStopped = true;
+        touchControlThread.Interrupt();
+        touchControlThread.Join();
+    }
+
+    public void ParticleObjectOnEvent(WorldEvent e)
+    {
         Debug.Log("play " + idx);
         if (po[idx] != null)
         {
@@ -126,5 +121,4 @@ public class FireworksManager : CylinderVoxManager {
         }
         idx = (idx + 1) % po.Length;
     }
-
 }

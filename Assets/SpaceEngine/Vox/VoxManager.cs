@@ -82,15 +82,10 @@ public class VoxManager : MonoBehaviour
     Thread touchControlThread;
     NetworkStream touchControlStream;
 
-    Thread sonicControlThread;
-    NetworkStream sonicControlStream;
-
     Thread gestureControlThread;
     NetworkStream gestureControlStream;
 
     char[] touchControlSplit = new char[] { ' ' };
-
-    float sonicRadius = 4f;
 
     void touchControl()
     {
@@ -151,72 +146,6 @@ public class VoxManager : MonoBehaviour
             }
         }
         Debug.Log("touchControl TCP thread end");
-    }
-
-    void sonicControl()
-    {
-        Debug.Log("sonicControl TCP thread start");
-
-        TcpClient client = new TcpClient();
-
-        try
-        {
-            client.Connect(phoneip, 13139);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("sonicControl server is not available");
-            return;
-        }
-        sonicControlStream = client.GetStream();
-
-        Debug.Log("sonicControl connected");
-
-        byte[] buf = new byte[9];
-
-        int num;
-        try
-        {
-            num = sonicControlStream.Read(buf, 0, buf.Length);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e);
-            throw e;
-        }
-
-        while (num != 0)
-        {
-            string result = System.Text.Encoding.UTF8.GetString(buf);
-            //Debug.Log(result);
-
-            double radius = 0;
-
-            try
-            {
-                radius = double.Parse(result);
-            }
-            catch (Exception e)
-            {
-                //Debug.LogError(e);
-            }
-            if (radius > -0.1f && radius < 2.1f)
-            {
-                sonicRadius = 2f + ((float)radius) * 10f;
-                Debug.Log(sonicRadius);
-            }
-
-            try
-            {
-                num = sonicControlStream.Read(buf, 0, buf.Length);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-                throw e;
-            }
-        }
-        Debug.Log("sonicControl TCP thread end");
     }
 
     void gestureControl()
@@ -408,33 +337,8 @@ public class VoxManager : MonoBehaviour
         };
 
 
-        Vector3 fishvelocity;
-        if (GameObject.Find("/sth") != null)
-        {
-            fishvelocity = 5 * RandomWalkVelocity(objectsWorld, GameObject.Find("/sth").transform.position);
-        }
-
         objs = new HashSet<IMeshObject> {
-            //new IMeshObject {
-            //    gameObject = mermaid,
-            //    mode = MeshMode.SkinnedMeshRendererMode,
-            //    transform = mermaid.transform,
-            //},
-            //new VoxObject {
-            //    gameObject = GameObject.Find("/Campfire_Animated"),
-            //    mode = MeshMode.MeshFilterMode,
-            //    transform = GameObject.Find("/Campfire_Animated").transform,
-            //},
-            //new VoxObject {
-            //    gameObject = GameObject.Find("WTF"),
-            //    mode = MeshMode.SkinnedMeshRendererMode,
-            //    transform = GameObject.Find("WTF").transform,
-            //},
-            //new VoxObject {
-            //    gameObject = stag,
-            //    mode = MeshMode.SkinnedMeshRendererMode,
-            //    transform = stag.transform,
-            //},
+
             //new VoxObject {
             //    gameObject = GameObject.Find("11_Hand_Right"),
             //    mode = MeshMode.MeshFilterMode,
@@ -454,55 +358,6 @@ public class VoxManager : MonoBehaviour
             //    gameObject = buddy,
             //    mode = MeshMode.SkinnedMeshRendererMode,
             //    transform = buddy.transform,
-            //},
-            //new VoxObject {
-            //    gameObject = sth,
-            //    mode = MeshMode.MeshFilterMode,
-            //    transform = sth.transform,
-            //    Update = (VoxObject.MeshObjectUpdateStatus status) =>
-            //    {
-            //        if (status != VoxObject.MeshObjectUpdateStatus.IN)
-            //        {
-            //            fishvelocity = 5 * RandomWalkVelocity(objectsWorld, sth.transform.position);
-            //                                Quaternion q = sth.transform.rotation;
-            //            Vector3 v = fishvelocity;
-            //            v.y = 0;
-            //            v = Vector3.Normalize(v);
-            //            float angle = v.z > 0 ? Mathf.Acos(v.x) : 2 * Mathf.PI - Mathf.Acos(v.x);
-            //            //q.y = 270f - 360f * angle;
-            //            q.eulerAngles = new Vector3(90, 360f - 360f * angle / (2 * Mathf.PI), 0);
-            //            sth.transform.rotation = q;
-            //            Debug.Log("new dir");
-            //        }
-            //        sth.transform.position += fishvelocity * Time.deltaTime;
-            //        //aa.Play("Swim");
-            //    },
-            //    OnEvent = (WorldEvent e) =>
-            //    {
-            //        fishvelocity = 5 * WalkVelocity(e.position, sth.transform.position);
-            //        Quaternion q = sth.transform.rotation;
-            //        Vector3 v = e.position - objectsWorld.center;
-            //        v.y = 0;
-            //        v = Vector3.Normalize(v);
-            //        float angle = v.z > 0 ? Mathf.Acos(v.x) : 2 * Mathf.PI - Mathf.Acos(v.x);
-            //        q.eulerAngles = new Vector3(90, 360f - 360f * angle / (2 * Mathf.PI), 0);
-            //        sth.transform.rotation = q;
-            //    }
-            //},
-            //new VoxObject {
-            //    gameObject = fish,
-            //    mode = MeshMode.SkinnedMeshRendererMode,
-            //    transform = fish.transform,
-            //    Update = (VoxObject.MeshObjectUpdateStatus status) =>
-            //    {
-            //        //if (status != VoxObject.MeshObjectUpdateStatus.IN)
-            //        //{
-            //        //    fishvelocity = RandomVelocity(world, fish.transform.position);
-            //        //    Debug.Log("new dir");
-            //        //}
-            //        //fish.transform.position += fishvelocity * 2 * Time.deltaTime;
-            //        aa.Play("Swim");
-            //    }
             //},
             //new VoxObject{
             //    gameObject = dd,
@@ -587,11 +442,6 @@ public class VoxManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (bubble != null)
-        {
-            bubble.transform.localScale = new Vector3(sonicRadius, sonicRadius, sonicRadius);
-        }
-
         // use cam-mouse ray to cal the led world position
         if (Input.GetButtonDown("Fire1"))
         {
@@ -618,10 +468,6 @@ public class VoxManager : MonoBehaviour
         {
             touchControlStream.Close();
         }
-        if (sonicControlStream != null)
-        {
-            sonicControlStream.Close();
-        }
         if (bridge != null)
         {
             bridge.dispose();
@@ -633,23 +479,6 @@ public class VoxManager : MonoBehaviour
             touchControlThread.Interrupt();
             touchControlThread.Join();
         }
-        if (sonicControlThread != null)
-        {
-            sonicControlThread.Interrupt();
-            sonicControlThread.Join();
-        }
-    }
-
-    public static Vector3 WalkVelocity(Vector3 des, Vector3 p)
-    {
-        return Vector3.Normalize(des - p);
-    }
-
-    public static Vector3 RandomWalkVelocity(Bounds b, Vector3 p)
-    {
-        Vector3 tmp = b.max - b.min;
-        Vector3 des = b.min + new Vector3(tmp.x * (float)rand.NextDouble(), tmp.y * (float)rand.NextDouble(), tmp.z * (float)rand.NextDouble());
-        return Vector3.Normalize(des - p);
     }
 
     public static Vector3 TranslatePosition(Bounds b1, Bounds b2, Vector3 p)

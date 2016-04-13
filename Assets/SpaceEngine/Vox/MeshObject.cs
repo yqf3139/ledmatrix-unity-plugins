@@ -4,42 +4,42 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public class MeshNormalObject : MonoBehaviour, IMeshObject
+public class MeshObject : MonoBehaviour, IMeshObject
 {
     IMeshObject impl;
-    public IMeshEventListener listener = null;
-
-    void Start()
-    {
-        impl = new MeshNormalObjectImpl(transform);
-    }
 
     public GameObject MeshObjectGetGameObject()
     {
-        return gameObject;
+        throw new NotImplementedException();
     }
 
     public Material[] MeshObjectGetMaterials()
     {
-        return impl.MeshObjectGetMaterials();
+        throw new NotImplementedException();
     }
 
     public Mesh MeshObjectGetMesh()
     {
-        return impl.MeshObjectGetMesh();
+        throw new NotImplementedException();
+    }
+
+    public void MeshObjectOnEvent(WorldEvent e)
+    {
+        throw new NotImplementedException();
     }
 
     public Vector3 MeshObjectTransformPoint(Vector3 v)
     {
-        return impl.MeshObjectTransformPoint(v);
+        throw new NotImplementedException();
+    }
+
+    public void MeshObjectUpdate(MeshObjectUpdateStatus s)
+    {
+        throw new NotImplementedException();
     }
 
     public IMeshEventListener MeshObjectListener()
     {
-        if (listener != null)
-        {
-            return listener;
-        }
         return impl.MeshObjectListener();
     }
 }

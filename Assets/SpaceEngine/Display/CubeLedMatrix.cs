@@ -9,9 +9,11 @@ public class CubeLedMatrix : LedMatrix
     GameObject thecube = null;
     CubeLedSeq cubeledseq = null;
     Bounds bounds = new Bounds();
-    const float step = 5f;
+    const float step = 15f;
 
     int LEDX, LEDY, LEDZ;
+
+    const bool reflect = false;
 
     public CubeLedMatrix(CubeLedSeq ledseq)
         :base(ledseq)
@@ -48,6 +50,7 @@ public class CubeLedMatrix : LedMatrix
         }
 
         parent = new GameObject("CubeLedMatrix");
+        GameObject l = GameObject.Find("plight");
 
         for (int i = 0; i < LEDX; i++)
         {
@@ -60,10 +63,17 @@ public class CubeLedMatrix : LedMatrix
                     go.SetActive(false);
                     go.transform.parent = parent.transform;
                     bounds.Encapsulate(go.transform.position);
-                    go.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+                    //go.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
                     ledmats[ledseq.getLedIdx(i, j, k)] = go.GetComponent<MeshRenderer>().material = new Material(themat);
                     ledmats[ledseq.getLedIdx(i, j, k)].SetVector("_MKGlowColor", new Vector4(1f, 1f, 1f, 1f));
                     ledcubes[ledseq.getLedIdx(i, j, k)] = go;
+
+                    if (reflect)
+                    {
+                        GameObject ll = GameObject.Instantiate(l);
+                        ll.transform.position = go.transform.position;
+                        ll.transform.parent = go.transform;
+                    }
                 }
             }
         }

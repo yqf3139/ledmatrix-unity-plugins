@@ -15,8 +15,8 @@ public class CylinderMeshVox : MeshVox
     int floor, round;
     int[] counters;
 
-    public CylinderMeshVox(CylinderLeqSeq seq, Bounds b, HashSet<IMeshObject> objs, HashSet<IVoxListener> liss)
-        :base(seq, b, objs, liss)
+    public CylinderMeshVox(CylinderLeqSeq seq, Bounds b, HashSet<IMeshObject> objs)
+        :base(seq, b, objs)
     {
         cylinderledseq = seq;
         floor = seq.floorCounter;
@@ -57,5 +57,9 @@ public class CylinderMeshVox : MeshVox
             cylinderledseq.height, cylinderledseq.pillar);
     }
 
+    public override Vector3 GetTranslationFromZeroCenter()
+    {
+        return new Vector3();
+    }
 }
 

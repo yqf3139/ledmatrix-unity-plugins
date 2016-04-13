@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 using System;
 using System.Threading;
+using System.Diagnostics;
 
 public abstract class DefaultVoxManager : MonoBehaviour {
 
@@ -29,13 +30,13 @@ public abstract class DefaultVoxManager : MonoBehaviour {
 
     public Bounds objectsWorld;
     public Bounds particlesWorld;
-    //public Bounds objectsWorld = new Bounds(new Vector3(0, 9f, 0), new Vector3(18, 9f, 18) * 2);
-    //public Bounds particlesWorld = new Bounds(new Vector3(0, 18, 0), new Vector3(27, 18, 27) * 2);
     public Bounds ledWorld;
 
-    public HashSet<IMeshObject> objs = new HashSet<IMeshObject>();
-    public HashSet<IVoxListener> liss = new HashSet<IVoxListener>();
-    public HashSet<IParticleObject> pos = new HashSet<IParticleObject>();
+    public static HashSet<IMeshObject> objs = new HashSet<IMeshObject>();
+    public static HashSet<IMeshEventListener> liss = new HashSet<IMeshEventListener>();
+    public static HashSet<IParticleObject> pos = new HashSet<IParticleObject>();
+    public static HashSet<IParticleEventListener> pliss = new HashSet<IParticleEventListener>();
+
     public HashSet<Thread> workers = new HashSet<Thread>();
 
     protected DefaultVoxManager()
@@ -64,12 +65,26 @@ public abstract class DefaultVoxManager : MonoBehaviour {
 
     protected abstract void initWorkers(HashSet<Thread> s);
     protected abstract LedSeq initLedSeq();
-    protected abstract MeshVox initMeshVox(LedSeq s, Bounds b, HashSet<IMeshObject> ss, HashSet<IVoxListener> liss);
+    protected abstract MeshVox initMeshVox(LedSeq s, Bounds b, HashSet<IMeshObject> ss);
     protected abstract ParticleVox initParticleVox(LedSeq s, Bounds b, HashSet<IParticleObject> ss);
     protected abstract LedMatrix initEmulator(LedSeq s);
     protected abstract LedMatrix initBridge(LedSeq s);
 
-    protected virtual void initVoxListeners(HashSet<IVoxListener> s)
+    protected virtual void initParticleListeners(HashSet<IParticleEventListener> s)
+    {
+        if (!NeedAutoSearch) return;
+        MonoBehaviour[] monoScripts = FindObjectsOfType(typeof(MonoBehaviour)) as MonoBehaviour[];
+
+        foreach (MonoBehaviour monoScript in monoScripts)
+        {
+            if (typeof(IParticleEventListener).IsAssignableFrom(monoScript.GetType()))
+            {
+                s.Add(monoScript as IParticleEventListener);
+            }
+        }
+    }
+
+    protected virtual void initMeshListeners(HashSet<IMeshEventListener> s)
     {
         //Auto select the objects in the bound
         if (!NeedAutoSearch) return;
@@ -77,9 +92,9 @@ public abstract class DefaultVoxManager : MonoBehaviour {
 
         foreach (MonoBehaviour monoScript in monoScripts)
         {
-            if (typeof(IVoxListener).IsAssignableFrom(monoScript.GetType()))
+            if (typeof(IMeshEventListener).IsAssignableFrom(monoScript.GetType()))
             {
-                s.Add(monoScript as IVoxListener);
+                s.Add(monoScript as IMeshEventListener);
             }
         }
     }
@@ -115,7 +130,7 @@ public abstract class DefaultVoxManager : MonoBehaviour {
 
     void Awake()
     {
-        Debug.Log("Awake");
+        UnityEngine.Debug.Log("Awake");
 
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 20;
@@ -124,7 +139,7 @@ public abstract class DefaultVoxManager : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
-        Debug.Log("Start");
+        UnityEngine.Debug.Log("Start");
 
         Loom.Initialize();
 
@@ -146,8 +161,8 @@ public abstract class DefaultVoxManager : MonoBehaviour {
         if (NeedObjectVox)
         {
             initVoxObjects(objs);
-            initVoxListeners(liss);
-            vox = initMeshVox(ledseq, objectsWorld, objs, liss);
+            initMeshListeners(liss);
+            vox = initMeshVox(ledseq, objectsWorld, objs);
             vox.Start();
             MeshVox.setGradientColor(NeedGradientColor, 1, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff);
             MeshVox.setSolidFill(NeedSolidFill);
@@ -157,6 +172,7 @@ public abstract class DefaultVoxManager : MonoBehaviour {
         if (NeedParticleVox)
         {
             initParticleObjects(pos);
+            initParticleListeners(pliss);
             pvox = initParticleVox(ledseq, particlesWorld, pos);
         }
 
@@ -209,12 +225,25 @@ public abstract class DefaultVoxManager : MonoBehaviour {
             if (NeedObjectVox)
             {
                 vox.OnEvent(eventForObj);
+                foreach (IMeshEventListener l in liss)
+                    l.MeshObjectOnEvent(eventForObj);
             }
             if (NeedParticleVox)
             {
                 pvox.OnEvent(eventForParticle);
+                foreach (IParticleEventListener l in pliss)
+                    l.ParticleObjectOnEvent(eventForParticle);
             }
         }
+    }
+
+    public void onBubble(Vector3 hit)
+    {
+        Loom.QueueOnMainThread(() =>
+        {
+            ripple.transform.position = TranslatePosition(objectsWorld, particlesWorld, hit);
+            rippleps.Play();
+        });
     }
 
     // Update is called once per frame
@@ -252,7 +281,7 @@ public abstract class DefaultVoxManager : MonoBehaviour {
 
     void OnDisable()
     {
-        Debug.Log("on disable");
+        UnityEngine.Debug.Log("on disable");
 
         if (bridge != null)
         {

@@ -73,17 +73,18 @@ public abstract class MeshVox : Vox
     protected int numobjects = 0, numverts = 0, numtris = 0, namplc = 0, nummats = 0, numtrimats = 0;
 
     protected HashSet<IMeshObject> voxObjects = new HashSet<IMeshObject>();
-    protected HashSet<IVoxListener> listeners = new HashSet<IVoxListener>();
 
-    public MeshVox(LedSeq seq, Bounds worldBounds, HashSet<IMeshObject> objs, HashSet<IVoxListener> liss)
+    protected Vector3 translationFromZeroCenter;
+
+    public MeshVox(LedSeq seq, Bounds worldBounds, HashSet<IMeshObject> objs)
         :base(seq, worldBounds)
     {
         voxObjects = objs == null ? voxObjects : objs;
-        listeners = liss == null ? listeners : liss;
     }
 
     public void Start()
     {
+        //translationFromZeroCenter = GetTranslationFromZeroCenter();
         VoxStart();
         unsafe
         {
@@ -113,10 +114,7 @@ public abstract class MeshVox : Vox
 
     public override void OnEvent(WorldEvent e)
     {
-        foreach (IVoxListener l in listeners)
-        {
-            l.MeshObjectOnEvent(e);
-        }
+
     }
 
     // Update is called once per frame
@@ -160,6 +158,7 @@ public abstract class MeshVox : Vox
     }
 
     public abstract void UpdateLED();
+    public abstract Vector3 GetTranslationFromZeroCenter();
 
     void vox(IMeshObject obj)
     {
@@ -187,7 +186,7 @@ public abstract class MeshVox : Vox
         int vertslen = vertices.Length;
         for (int i = 0; i < vertslen; i++)
         {
-            Vector3 vert1 = obj.MeshObjectTransformPoint(vertices[i]);
+            Vector3 vert1 = obj.MeshObjectTransformPoint(vertices[i]); // + translationFromZeroCenter;
 
             vertidx = 3 * (numverts + i);
             unsafe

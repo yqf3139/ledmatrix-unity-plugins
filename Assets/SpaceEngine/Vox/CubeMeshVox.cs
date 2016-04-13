@@ -9,8 +9,8 @@ public class CubeMeshVox : MeshVox
     CubeLedSeq cubeledseq = null;
     int LEDX, LEDY, LEDZ;
 
-    public CubeMeshVox(CubeLedSeq seq, Bounds b, HashSet<IMeshObject> objs, HashSet<IVoxListener> liss)
-        :base(seq, b, objs, liss)
+    public CubeMeshVox(CubeLedSeq seq, Bounds b, HashSet<IMeshObject> objs)
+        :base(seq, b, objs)
     {
         cubeledseq = seq;
         LEDX = cubeledseq.LEDX;
@@ -43,6 +43,11 @@ public class CubeMeshVox : MeshVox
                         ledseq.setRealLed(i, j, k, color);
                     }
                 }
+    }
+
+    public override Vector3 GetTranslationFromZeroCenter()
+    {
+        return new Vector3();
     }
 }
 

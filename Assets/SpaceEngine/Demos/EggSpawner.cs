@@ -22,7 +22,7 @@ public class EggSpawner : MonoBehaviour
     void SpawnEgg()
     {
         KinectManager manager = KinectManager.Instance;
-
+        //Debug.Log(eggPrefab && manager && manager.IsInitialized() && manager.IsUserDetected());
         if (eggPrefab && manager && manager.IsInitialized() && manager.IsUserDetected())
         {
             long userId = manager.GetPrimaryUserID();

@@ -30,7 +30,6 @@ public class CylinderParticleVox : ParticleVox
     // position need to be center around [0, +, 0]
     public override void setRealLed(Vector3 position, Color color, float size)
     {
-        position = position - origin;
         float currentSize = 1f;
         if (size < 1f)
         {

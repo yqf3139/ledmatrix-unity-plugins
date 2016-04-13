@@ -11,6 +11,6 @@ public interface IMeshObject
     Material[] MeshObjectGetMaterials();
     GameObject MeshObjectGetGameObject();
     Vector3 MeshObjectTransformPoint(Vector3 v);
-    IVoxListener MeshObjectListener();
+    IMeshEventListener MeshObjectListener();
 }
 
