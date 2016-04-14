@@ -10,11 +10,15 @@ public class ParticleSystemObject : MonoBehaviour, IParticleObject
     public ParticleSystem ps;
     public Vector2 heightRange;
     public bool needTranslation;
+    public Vector3 center;
+    public float extend;
 
     IParticleObject impl;
 
     void Start()
     {
+        bounds = new Bounds(center, 2 * extend * DefaultVoxManager.getDefault().getRatio());
+        Debug.Log(DefaultVoxManager.getDefault());
         ps = GetComponent<ParticleSystem>();
         impl = new ParticleSystemObjectImpl(bounds, ps, heightRange, needTranslation);
     }

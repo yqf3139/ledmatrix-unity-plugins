@@ -28,7 +28,7 @@ public class EggSpawner : MonoBehaviour
             long userId = manager.GetPrimaryUserID();
             //Vector3 posUser = manager.GetUserPosition(userId);
 
-            Vector3 spawnPos = new Vector3(Random.Range(-10, 10), 25, Random.Range(-5, 8));
+            Vector3 spawnPos = new Vector3(Random.Range(-10, 10), 25, Random.Range(-8, 5));
 
             Transform eggTransform = Instantiate(eggPrefab, spawnPos, Quaternion.identity) as Transform;
             eggTransform.parent = transform;

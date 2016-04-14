@@ -181,6 +181,8 @@ public abstract class LedSeq
 
     public abstract void restoreParams();
 
+    public abstract Vector3 getRatio();
+
     public static void startServer()
     {
 

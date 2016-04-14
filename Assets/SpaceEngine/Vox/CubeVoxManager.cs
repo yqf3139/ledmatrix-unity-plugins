@@ -10,6 +10,7 @@ public class CubeVoxManager : DefaultVoxManager
     public uint LEDX = 32;
     public uint LEDY = 32;
     public uint LEDZ = 32;
+    public float step = 5f;
 
     protected override void initBounds()
     {
@@ -23,7 +24,7 @@ public class CubeVoxManager : DefaultVoxManager
 
     protected override void initConfig()
     {
-
+        CubeLedMatrix.step = step;
     }
 
     protected override LedMatrix initEmulator(LedSeq s)

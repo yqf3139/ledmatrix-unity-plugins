@@ -108,4 +108,11 @@ public class CylinderLeqSeq : LedSeq
         //return i * ledsPerFloor + ledsSumPerRound[j] + k;
     }
 
+    public override Vector3 getRatio()
+    {
+        Vector3 ratio = new Vector3(diameter, height * floorCounter, diameter);
+        ratio = new Vector3(ratio.x / ratio.y, 1, ratio.z / ratio.y);
+        Debug.Log(ratio);
+        return ratio;
+    }
 }

@@ -6,14 +6,17 @@ using UnityEngine;
 
 public class CylinderLedMatrix : LedMatrix
 {
+    public static Vector3 origin = new Vector3(-100, 0, 500);
+    //public static Vector3 origin = new Vector3(0, 0, 0);
+
     GameObject thecube = null;
-    Bounds bounds = new Bounds();
+    Bounds bounds;
 
     GameObject[][] pillars = null;
     GameObject pillar = null;
     GameObject top = null;
 
-    const bool reflect = true;
+    const bool reflect = false;
 
     public CylinderLedMatrix(CylinderLeqSeq ledseq)
         : base(ledseq)
@@ -33,8 +36,8 @@ public class CylinderLedMatrix : LedMatrix
         Material transmat = (Material)Resources.Load("transmat", typeof(Material));
         transmat.color = new Color(143f / 255f, 143f / 255f, 143f / 255f, 50 / 255f);
 
-        Vector3 pillarScale = new Vector3(1f, height * floorCounter * 1.15f / 2, 1f);
-        Vector3 pillarCenter = new Vector3(-70f, height * floorCounter * 1.15f / 2, 0f);
+        Vector3 pillarScale = new Vector3(1f, height * floorCounter * 1f / 2, 1f);
+        Vector3 pillarCenter = new Vector3(0f , height * floorCounter * 1f / 2, 0f) + origin;
 
         pillar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         pillar.name = "pillar";
@@ -45,7 +48,7 @@ public class CylinderLedMatrix : LedMatrix
         top = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         top.name = "top";
         top.transform.localScale = new Vector3(ledseq.radius * 2.2f, 2f, ledseq.radius * 2.2f);
-        top.transform.position = new Vector3(-70f, height * floorCounter * 1.3f, 0f);
+        top.transform.position = new Vector3(0, height * floorCounter * 1f, 0f) + origin;
         top.GetComponent<MeshRenderer>().material = new Material(Shader.Find("Diffuse"));
 
         Vector3[][] positions = ledseq.positions;
@@ -67,6 +70,8 @@ public class CylinderLedMatrix : LedMatrix
             }
         }
 
+        bounds = new Bounds(positions[0][0] + origin, new Vector3());
+
         parent = new GameObject("CylinderLedMatrix");
         ledcubes = new GameObject[TOTAL];
         ledmats = new Material[TOTAL];
@@ -84,11 +89,12 @@ public class CylinderLedMatrix : LedMatrix
                     go = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     
                     go.transform.parent = parent.transform;
-                    go.transform.position = positions[j][k] + new Vector3(-70f, height * i, 0f);
-                    bounds.Encapsulate(go.transform.position);
+                    go.transform.position = positions[j][k] + new Vector3(0, height * i, 0f) + origin;
                     ledcubes[ledidx] = go;
                     ledmats[ledidx] = go.GetComponent<MeshRenderer>().material = new Material(themat);
                     ledmats[ledidx].SetVector("_MKGlowColor", new Vector4(1f, 1f, 1f, 1f));
+
+                    bounds.Encapsulate(go.transform.position);
 
                     if (reflect)
                     {

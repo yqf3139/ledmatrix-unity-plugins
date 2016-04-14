@@ -23,10 +23,17 @@ public abstract class DefaultVoxManager : MonoBehaviour {
     public bool NeedSolidFill = true;
     public bool NeedAutoSearch = true;
     public bool NeedGradientColor = false;
+    public bool NeedRegister = true;
+
     public int fillColor = 0x7f7f7f00;
 
     public string SeqName = "C:\\Users\\yqf\\Desktop\\test.ledseq";
     public uint SeqFrames = 30 * 20;
+
+    public float objectWorldExtend;
+    public float particlesWorldExtend;
+    public Vector3 objectWorldCenter;
+    public Vector3 particlesWorldCenter;
 
     public Bounds objectsWorld;
     public Bounds particlesWorld;
@@ -38,11 +45,6 @@ public abstract class DefaultVoxManager : MonoBehaviour {
     public static HashSet<IParticleEventListener> pliss = new HashSet<IParticleEventListener>();
 
     public HashSet<Thread> workers = new HashSet<Thread>();
-
-    protected DefaultVoxManager()
-    {
-        manager = this;
-    }
 
     public static DefaultVoxManager getDefault()
     {
@@ -131,20 +133,26 @@ public abstract class DefaultVoxManager : MonoBehaviour {
     void Awake()
     {
         UnityEngine.Debug.Log("Awake");
+        if (NeedRegister)
+        {
+            manager = this;
+        }
 
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 20;
+
+        initConfig();
+        initBounds();
+        ledseq = initLedSeq();
     }
 
     // Use this for initialization
-    void Start ()
+    void Start()
     {
         UnityEngine.Debug.Log("Start");
 
         Loom.Initialize();
 
-        initConfig();
-        initBounds();
         initWorkers(workers);
 
         foreach (Thread w in workers)
@@ -152,7 +160,10 @@ public abstract class DefaultVoxManager : MonoBehaviour {
             w.Start();
         }
 
-        ledseq = initLedSeq();
+        Vector3 ratio = ledseq.getRatio();
+        objectsWorld = new Bounds(objectWorldCenter, 2 * objectWorldExtend * ratio);
+        particlesWorld = new Bounds(particlesWorldCenter, 2 * particlesWorldExtend * ratio);
+
         if (NeedSaveSeq)
         {
             ledseq.open(SeqName, SeqFrames);
@@ -235,6 +246,11 @@ public abstract class DefaultVoxManager : MonoBehaviour {
                     l.ParticleObjectOnEvent(eventForParticle);
             }
         }
+    }
+
+    public Vector3 getRatio()
+    {
+        return ledseq.getRatio();
     }
 
     public void onBubble(Vector3 hit)

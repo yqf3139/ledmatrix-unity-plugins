@@ -8,8 +8,9 @@ public class CubeLedMatrix : LedMatrix
 {
     GameObject thecube = null;
     CubeLedSeq cubeledseq = null;
-    Bounds bounds = new Bounds();
-    const float step = 15f;
+    Bounds bounds;
+    public static float step = 10f;
+    public static Vector3 origin;
 
     int LEDX, LEDY, LEDZ;
 
@@ -18,6 +19,7 @@ public class CubeLedMatrix : LedMatrix
     public CubeLedMatrix(CubeLedSeq ledseq)
         :base(ledseq)
     {
+        origin = new Vector3(100f, 0, 500 - ledseq.LEDZ / 2 * step);
         cubeledseq = ledseq;
 
         LEDX = ledseq.LEDX;
@@ -42,12 +44,20 @@ public class CubeLedMatrix : LedMatrix
             for (int k = 0; k < LEDZ; k++)
             {
                 go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                go.transform.position = new Vector3(i * step - 70, 0, k * step) + new Vector3(0f, step * LEDY / 2, 0f);
+                go.transform.position = new Vector3(i * step, 0, k * step) + new Vector3(0f, step * LEDY / 2, 0f) + origin;
                 go.transform.parent = parent.transform;
                 go.transform.localScale = new Vector3(1f, step * LEDY / 2, 0.2f);
                 go.GetComponent<MeshRenderer>().material = new Material(transmat);
             }
         }
+
+        GameObject top = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        top.name = "cubetop";
+        top.transform.localScale = new Vector3(LEDX * step * 1.1f, 2f, LEDZ * step * 1.1f);
+        top.transform.position = new Vector3(LEDX / 2 * step, step * LEDY * 1f, LEDZ / 2 * step) + origin;
+        top.GetComponent<MeshRenderer>().material = new Material(Shader.Find("Diffuse"));
+
+        bounds = new Bounds(origin, new Vector3());
 
         parent = new GameObject("CubeLedMatrix");
         GameObject l = GameObject.Find("plight");
@@ -59,11 +69,10 @@ public class CubeLedMatrix : LedMatrix
                 for (int k = 0; k < LEDZ; k++)
                 {
                     go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    go.transform.position = new Vector3(i * step - 70, j * step, k * step);
+                    go.transform.position = new Vector3(i * step, j * step, k * step) + origin;
                     go.SetActive(false);
                     go.transform.parent = parent.transform;
-                    bounds.Encapsulate(go.transform.position);
-                    //go.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+                    bounds.Encapsulate(new Vector3(i * step, j * step, k * step) + origin);
                     ledmats[ledseq.getLedIdx(i, j, k)] = go.GetComponent<MeshRenderer>().material = new Material(themat);
                     ledmats[ledseq.getLedIdx(i, j, k)].SetVector("_MKGlowColor", new Vector4(1f, 1f, 1f, 1f));
                     ledcubes[ledseq.getLedIdx(i, j, k)] = go;

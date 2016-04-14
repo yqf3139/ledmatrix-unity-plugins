@@ -9,8 +9,9 @@ public class CylinderVoxManager : DefaultVoxManager
 {
     public uint floorCounter = 25;
     public uint roundsCounter = 8;
+    public float step = 15f;
     public float distance = 15f;
-    public float height = 15f;
+    public float height = 6f;
     public float pillar = 6f;
 
     protected override void initBounds()
@@ -35,7 +36,7 @@ public class CylinderVoxManager : DefaultVoxManager
 
     protected override LedSeq initLedSeq()
     {
-        return new CylinderLeqSeq(floorCounter, roundsCounter, distance, height, pillar);
+        return new CylinderLeqSeq(floorCounter, roundsCounter, step, distance, height, pillar);
     }
 
     protected override MeshVox initMeshVox(LedSeq s, Bounds b, HashSet<IMeshObject> ss)

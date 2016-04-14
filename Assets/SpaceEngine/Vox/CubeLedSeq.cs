@@ -52,4 +52,10 @@ public class CubeLedSeq : LedSeq
         return i * LEDY * LEDZ + j * LEDZ + k;
     }
 
+    public override Vector3 getRatio()
+    {
+        Vector3 ratio = new Vector3(LEDX, LEDY, LEDZ);
+        ratio = new Vector3(ratio.x / ratio.y, 1, ratio.z / ratio.y);
+        return ratio;
+    }
 }
