@@ -45,9 +45,11 @@ public abstract class LedMatrix
             g = 0xff & color;
             color >>= 8;
             r = 0xff & color;
-            ledmats[i].SetVector("_MKGlowColor", new Vector4(r / 255f, g / 255f, b / 255f, 1f));
-        }
+            setColor(i, r, g, b, 1f);
+        };
     }
+
+    public abstract void setColor(int idx, float r, float g, float b, float w);
 
     public virtual void dispose()
     {

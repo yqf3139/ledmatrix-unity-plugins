@@ -112,7 +112,6 @@ public class CylinderLeqSeq : LedSeq
     {
         Vector3 ratio = new Vector3(diameter, height * floorCounter, diameter);
         ratio = new Vector3(ratio.x / ratio.y, 1, ratio.z / ratio.y);
-        Debug.Log(ratio);
         return ratio;
     }
 }

@@ -92,5 +92,10 @@ public class CubeLedMatrix : LedMatrix
     {
         return bounds;
     }
+
+    public override void setColor(int idx, float r, float g, float b, float w)
+    {
+        ledmats[idx].SetVector("_MKGlowColor", new Vector4(r / 255f, g / 255f, b / 255f, 1f));
+    }
 }
 

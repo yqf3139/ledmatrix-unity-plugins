@@ -11,7 +11,7 @@ public interface UpdateLedHander
 
 public interface IParticleObject
 {
-    void ParticleObjectPlay(float height);
+    void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area);
     void ParticleObjectUpdate(UpdateLedHander handler);
 }
 

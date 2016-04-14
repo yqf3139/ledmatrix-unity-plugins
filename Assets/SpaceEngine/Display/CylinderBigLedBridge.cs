@@ -69,4 +69,9 @@ class CylinderBigLedBridge : LedMatrix
     {
         throw new NotImplementedException();
     }
+
+    public override void setColor(int idx, float r, float g, float b, float w)
+    {
+        throw new NotImplementedException();
+    }
 }

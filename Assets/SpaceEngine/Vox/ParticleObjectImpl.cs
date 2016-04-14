@@ -16,7 +16,7 @@ public abstract class ParticleObjectImpl : IParticleObject
         origin = b.center - new Vector3(0, b.extents.y, 0);
     }
 
-    public abstract void ParticleObjectPlay(float height);
+    public abstract void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area);
     public abstract void ParticleObjectUpdate(UpdateLedHander handler);
 
 }
@@ -38,7 +38,7 @@ public class ParticleEmitObjectImpl : ParticleObjectImpl
         emitter.localVelocity = new Vector3(0, heightRange.x + (heightRange.y - heightRange.x) * height, 0);
     }
 
-    public override void ParticleObjectPlay(float height)
+    public override void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area)
     {
         if (emitter.emit)
         {
@@ -84,19 +84,30 @@ public class ParticleSystemObjectImpl : ParticleObjectImpl
     public ParticleSystem root;
     public bool needTranslate = false;
     public Vector2 heightRange;
+    public Vector3 position;
 
     public ParticleSystemObjectImpl(Bounds b, ParticleSystem ps, Vector2 heightRange, bool needTranslate = false)
         : base(b)
     {
         root = ps;
+        position = root.transform.position;
         ExtractParticleSystems(ps);
         this.needTranslate = needTranslate;
         this.heightRange = heightRange;
     }
 
-    public override void ParticleObjectPlay(float height)
+    public override void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area)
     {
-        root.gravityModifier = heightRange.x + (1 - height) * (heightRange.y - heightRange.x);
+        root.Play();
+    }
+
+    protected void PlayInArea(Vector2 center, Vector2 area)
+    {
+        Vector3 ori = root.transform.position;
+        root.transform.position = position + new Vector3(center.x, 0, center.y);
+        ParticleSystem.ShapeModule shape = root.shape;
+        Vector3 box = new Vector3(area.x, 0, area.y);
+        shape.box = box;
         root.Play();
     }
 
@@ -142,5 +153,38 @@ public class ParticleSystemObjectImpl : ParticleObjectImpl
                     ps_arr[i].GetCurrentSize(ps));
             }
         }
+    }
+}
+
+public class ParticleSystemObjectFireworksImpl : ParticleSystemObjectImpl
+{
+    public ParticleSystemObjectFireworksImpl(Bounds b, ParticleSystem ps, Vector2 heightRange, bool needTranslate = false)
+        : base(b, ps, heightRange, needTranslate)
+    {
+    }
+
+    public override void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area)
+    {
+        float targetHeight = bounds.size.y * (0.3f + height / 2);
+        float speed = targetHeight / time;
+        ParticleSystem.VelocityOverLifetimeModule v = root.velocityOverLifetime;
+        v.y = new ParticleSystem.MinMaxCurve(speed);
+        root.startLifetime = time;
+        root.subEmitters.birth0.startLifetime = time / 3;
+        PlayInArea(center, area);
+    }
+}
+
+public class ParticleSystemObjectGravityImpl : ParticleSystemObjectImpl
+{
+    public ParticleSystemObjectGravityImpl(Bounds b, ParticleSystem ps, Vector2 heightRange, bool needTranslate = false)
+        : base(b, ps, heightRange, needTranslate)
+    {
+    }
+
+    public override void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area)
+    {
+        root.gravityModifier = heightRange.x + (1 - height) * (heightRange.y - heightRange.x);
+        PlayInArea(center, area);
     }
 }

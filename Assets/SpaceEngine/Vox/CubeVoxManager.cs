@@ -5,12 +5,15 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 
+public enum CubeDisplayMode { NORMAL, LED }
+
 public class CubeVoxManager : DefaultVoxManager
 {
     public uint LEDX = 32;
     public uint LEDY = 32;
     public uint LEDZ = 32;
     public float step = 5f;
+    public CubeDisplayMode mode = CubeDisplayMode.LED;
 
     protected override void initBounds()
     {
@@ -25,11 +28,21 @@ public class CubeVoxManager : DefaultVoxManager
     protected override void initConfig()
     {
         CubeLedMatrix.step = step;
+        CubeMatrix.step = step;
     }
 
     protected override LedMatrix initEmulator(LedSeq s)
     {
-        return new CubeLedMatrix(s as CubeLedSeq);
+        switch (mode)
+        {
+            case CubeDisplayMode.NORMAL:
+                return new CubeMatrix(s as CubeLedSeq);
+            case CubeDisplayMode.LED:
+                return new CubeLedMatrix(s as CubeLedSeq);
+            default:
+                return new CubeLedMatrix(s as CubeLedSeq);
+        }
+
     }
 
     protected override LedSeq initLedSeq()

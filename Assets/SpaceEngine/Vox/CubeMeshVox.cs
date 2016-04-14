@@ -35,6 +35,7 @@ public class CubeMeshVox : MeshVox
                     unsafe
                     {
                         color = (uint)resbuf[(i + 1) * 40000 + (j + 1) * 200 + k + 1];
+
                         if (color == 0)
                         {
                             // j, i, LEDZ-1-k

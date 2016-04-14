@@ -13,6 +13,13 @@ public class FireworkMessage
     public float height;
     public float x;
     public float y;
+    public float time;
+}
+
+class Region
+{
+    public Vector2 center;
+    public Vector2 area;
 }
 
 public class FireworksManager : MonoBehaviour, IParticleEventListener {
@@ -24,6 +31,17 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
     int idx = 0;
 
     bool touchControlStopped = false;
+
+    const float centerstep = 15;
+    const float rangestep = 10;
+
+    Region[] regions = new Region[]
+    {
+        new Region() { center = new Vector2(centerstep, centerstep), area = new Vector2(rangestep,rangestep) },
+        new Region() { center = new Vector2(-centerstep, centerstep), area = new Vector2(rangestep,rangestep) },
+        new Region() { center = new Vector2(centerstep, -centerstep), area = new Vector2(rangestep,rangestep) },
+        new Region() { center = new Vector2(-centerstep, -centerstep), area = new Vector2(rangestep,rangestep) },
+    };
 
     void touchControl()
     {
@@ -71,12 +89,13 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
             {
                 //onTouch(new Vector3(Screen.width * fx, Screen.height * fy));
                 Debug.Log(JsonUtility.ToJson(m));
-                if (m.type >= 0 && m.type < 9)
+                if (m.type >= 0 && m.type < 9 && m.time >= 1 && m.time <= 10)
                 {
                     float height = m.height > 1 ? 1 : m.height < 0 ? 0 : m.height;
                     if (po[m.type] != null)
                     {
-                        po[m.type].ParticleObjectPlay(height);
+                        po[m.type].ParticleObjectPlay(height, m.time, regions[idx%4].center, regions[idx%4].area);
+                        idx++; // po.Length;
                     }
                 }
             });
@@ -114,11 +133,11 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
 
     public void ParticleObjectOnEvent(WorldEvent e)
     {
-        Debug.Log("play " + idx);
-        if (po[idx] != null)
+        Debug.Log("play " + idx%3);
+        if (po[idx%3] != null)
         {
-            po[idx].ParticleObjectPlay(1f);
+            po[idx % 3].ParticleObjectPlay(0.5f, 2f, regions[idx%4].center, regions[idx%4].area);
         }
-        idx = (idx + 1) % po.Length;
+        idx++; // po.Length;
     }
 }

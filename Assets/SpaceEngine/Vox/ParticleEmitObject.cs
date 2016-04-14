@@ -21,11 +21,11 @@ public class ParticleEmitObject : MonoBehaviour, IParticleObject
         pe = GetComponent<EllipsoidParticleEmitter>();
         impl = new ParticleEmitObjectImpl(bounds, pe, heightRange);
     }
-
-    public void ParticleObjectPlay(float height)
+    public void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area)
     {
-        impl.ParticleObjectPlay(height);
+        impl.ParticleObjectPlay(height, time, center, area);
     }
+
 
     public void ParticleObjectUpdate(UpdateLedHander handler)
     {
