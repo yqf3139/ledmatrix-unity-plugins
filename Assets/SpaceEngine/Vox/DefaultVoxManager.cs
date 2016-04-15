@@ -203,6 +203,8 @@ public abstract class DefaultVoxManager : MonoBehaviour {
         {
             emulator = initEmulator(ledseq);
             ledWorld = emulator.getLedBound();
+            GameObject marker = new GameObject("Marker");
+            marker.transform.position = ledWorld.center;
         }
 
         if (NeedBridge)

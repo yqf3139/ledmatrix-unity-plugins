@@ -24,24 +24,27 @@ class Region
 
 public class FireworksManager : MonoBehaviour, IParticleEventListener {
 
+    System.Random rand = new System.Random();
+
+    public float centerstep = 15;
+    public float rangestep = 10;
+    public long playRandomEffectsThreshold = 10; // seconds
+
     Thread touchControlThread;
+    Thread randomEffectsControlThread;
 
     IParticleObject[] po = new IParticleObject[9];
+    IParticleObject[] randomEffects = new IParticleObject[3];
+    IParticleObject fishSplash;
+
+    UpSwimFish fish;
 
     int idx = 0;
+    bool workerThreadStopped = false;
 
-    bool touchControlStopped = false;
+    long lastEffectTimeStamp = UnixTimeNow(); // seconds
 
-    const float centerstep = 15;
-    const float rangestep = 10;
-
-    Region[] regions = new Region[]
-    {
-        new Region() { center = new Vector2(centerstep, centerstep), area = new Vector2(rangestep,rangestep) },
-        new Region() { center = new Vector2(-centerstep, centerstep), area = new Vector2(rangestep,rangestep) },
-        new Region() { center = new Vector2(centerstep, -centerstep), area = new Vector2(rangestep,rangestep) },
-        new Region() { center = new Vector2(-centerstep, -centerstep), area = new Vector2(rangestep,rangestep) },
-    };
+    Region[] regions;
 
     void touchControl()
     {
@@ -56,7 +59,7 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
         byte[] buf = null;
         IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-        while (!touchControlStopped)
+        while (!workerThreadStopped)
         {
             try
             {
@@ -85,27 +88,71 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
                 continue;
             }
 
-            Loom.QueueOnMainThread(() =>
+            handleMessage(m);
+        }
+        Debug.Log("touchControl TCP thread end");
+    }
+
+    void randomEffectsControl()
+    {
+        Debug.Log("playRandomEffects thread start");
+
+        while (!workerThreadStopped)
+        {
+            if (UnixTimeNow() - lastEffectTimeStamp > playRandomEffectsThreshold)
             {
-                //onTouch(new Vector3(Screen.width * fx, Screen.height * fy));
-                Debug.Log(JsonUtility.ToJson(m));
+                Loom.QueueOnMainThread(() =>
+                {
+                    emitRandomEffects();
+                });
+            }
+            Thread.Sleep(1000);
+        }
+        Debug.Log("playRandomEffects thread end");
+    }
+
+    void handleMessage(FireworkMessage m)
+    {
+        Debug.Log(JsonUtility.ToJson(m));
+
+        switch (m.handler)
+        {
+            case "fireworks":
                 if (m.type >= 0 && m.type < 9 && m.time >= 1 && m.time <= 10)
                 {
                     float height = m.height > 1 ? 1 : m.height < 0 ? 0 : m.height;
                     if (po[m.type] != null)
                     {
-                        po[m.type].ParticleObjectPlay(height, m.time, regions[idx%4].center, regions[idx%4].area);
-                        idx++; // po.Length;
+                        Loom.QueueOnMainThread(() =>
+                        {
+                            //onTouch(new Vector3(Screen.width * fx, Screen.height * fy));
+                            po[m.type].ParticleObjectPlay(height, m.time, regions[idx % 4].center, regions[idx % 4].area);
+                            idx++; // po.Length;
+                            lastEffectTimeStamp = UnixTimeNow();
+                        });
                     }
                 }
-            });
+                break;
+            case "fish":
+
+                break;
+            default:
+                break;
         }
-        Debug.Log("touchControl TCP thread end");
+
     }
 
     void Start()
     {
-        for (int i = 0; i < 8; i++)
+        regions = new Region[]
+        {
+            new Region() { center = new Vector2(centerstep, centerstep), area = new Vector2(rangestep,rangestep) },
+            new Region() { center = new Vector2(-centerstep, centerstep), area = new Vector2(rangestep,rangestep) },
+            new Region() { center = new Vector2(centerstep, -centerstep), area = new Vector2(rangestep,rangestep) },
+            new Region() { center = new Vector2(-centerstep, -centerstep), area = new Vector2(rangestep,rangestep) },
+        };
+
+        for (int i = 0; i < 9; i++)
         {
             GameObject go = GameObject.Find("/PS" + i);
             if (go == null)
@@ -114,21 +161,45 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
             }
             po[i] = go.GetComponent<IParticleObject>();
         }
-        GameObject fountain = GameObject.Find("/Fountain");
-        if (fountain != null)
+        for (int i = 0; i < 3; i++)
         {
-            po[8] = fountain.GetComponent<IParticleObject>();
+            GameObject go = GameObject.Find("/Random" + i);
+            if (go == null)
+            {
+                continue;
+            }
+            randomEffects[i] = go.GetComponent<IParticleObject>();
+        }
+        GameObject fishSplashObj = GameObject.Find("/FishSplash");
+        if (fishSplashObj != null)
+        {
+            fishSplash = fishSplashObj.GetComponent<IParticleObject>();
         }
 
+        fish = GameObject.Find("transformFizzBait").GetComponent<UpSwimFish>();
+
         touchControlThread = new Thread(touchControl);
-        touchControlThread.Start();
+        //touchControlThread.Start();
+        randomEffectsControlThread = new Thread(randomEffectsControl);
+        randomEffectsControlThread.Start();
     }
 
     void OnDisable()
     {
-        touchControlStopped = true;
+        workerThreadStopped = true;
+        randomEffectsControlThread.Interrupt();
+        randomEffectsControlThread.Join();
         touchControlThread.Interrupt();
         touchControlThread.Join();
+    }
+
+    void Update()
+    {
+        // use cam-mouse ray to cal the led world position
+        if (Input.GetButtonDown("Fire2"))
+        {
+            emitFish();
+        }
     }
 
     public void ParticleObjectOnEvent(WorldEvent e)
@@ -139,5 +210,35 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
             po[idx % 3].ParticleObjectPlay(0.5f, 2f, regions[idx%4].center, regions[idx%4].area);
         }
         idx++; // po.Length;
+        lastEffectTimeStamp = UnixTimeNow();
+    }
+
+    void emitRandomEffects()
+    {
+        Debug.Log("play random " + idx % 3);
+        int r = rand.Next(0, randomEffects.Length);
+        if (randomEffects[r] != null)
+        {
+            randomEffects[r].ParticleObjectPlay(0.5f, 2f, regions[idx % 4].center, regions[idx % 4].area);
+        }
+        idx++; // po.Length;
+        lastEffectTimeStamp = UnixTimeNow();
+    }
+
+    void emitFish()
+    {
+        if (fishSplash != null)
+        {
+            fish.swim();
+            fishSplash.ParticleObjectPlay(0.5f, 2f, regions[idx % 4].center, regions[idx % 4].area);
+        }
+        idx++;
+        lastEffectTimeStamp = UnixTimeNow();
+    }
+
+    static long UnixTimeNow()
+    {
+        TimeSpan timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
+        return (long)timeSpan.TotalSeconds;
     }
 }
