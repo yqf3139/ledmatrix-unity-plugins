@@ -5,13 +5,12 @@ using System.Text;
 
 public enum MeshObjectUpdateStatus { IN, INTERSECT, OUT };
 
-public interface IMeshEventListener
+public interface IMeshEventListener : IInteractionInput
 {
     void MeshObjectUpdate(MeshObjectUpdateStatus s);
-    void MeshObjectOnEvent(WorldEvent e);
 }
 
-public interface IParticleEventListener
+public interface IParticleEventListener : IInteractionInput
 {
-    void ParticleObjectOnEvent(WorldEvent e);
+
 }

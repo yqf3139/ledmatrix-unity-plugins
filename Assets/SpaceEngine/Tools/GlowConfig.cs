@@ -10,7 +10,6 @@ public class GlowConfig : MonoBehaviour {
     {
         mkGlow = this.GetComponent<MKGlow>();
         InitGlowSystem();
-        Debug.Log(mkGlow);
     }
 
     private void InitGlowSystem()

@@ -1,12 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Net.Sockets;
 using System.Collections.Generic;
-using System;
 using System.Threading;
-using System.Diagnostics;
 
-public abstract class DefaultVoxManager : MonoBehaviour {
+public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
 
     static System.Random rand = new System.Random();
 
@@ -24,6 +20,7 @@ public abstract class DefaultVoxManager : MonoBehaviour {
     public bool NeedAutoSearch = true;
     public bool NeedGradientColor = false;
     public bool NeedRegister = true;
+    public bool NeedInteraction = true;
 
     public int fillColor = 0x7f7f7f00;
 
@@ -61,6 +58,7 @@ public abstract class DefaultVoxManager : MonoBehaviour {
     LedMatrix bridge = null;
     ParticleVox pvox = null;
     MeshVox vox = null;
+    LEDInteractionManager interaction = null;
 
     protected abstract void initConfig();
     protected abstract void initBounds();
@@ -207,6 +205,11 @@ public abstract class DefaultVoxManager : MonoBehaviour {
             marker.transform.position = ledWorld.center;
         }
 
+        if (NeedInteraction)
+        {
+            interaction = new LEDInteractionManager(emulator, this);
+        }
+
         if (NeedBridge)
         {
             bridge = initBridge(ledseq);
@@ -216,37 +219,14 @@ public abstract class DefaultVoxManager : MonoBehaviour {
     public virtual void onTouch(Vector3 e)
     {
         Ray ray = Camera.main.ScreenPointToRay(e);
-        WorldEvent eventForObj = null, eventForParticle = null;
 
         float dis;
         if (ledWorld.IntersectRay(ray, out dis))
         {
             Vector3 hit = ray.origin + dis * Vector3.Normalize(ray.direction);
 
-            // translate to the obj and particle world position and OnEvent()
-            eventForObj = new WorldEvent() { position = TranslatePosition(ledWorld, objectsWorld, hit) };
-            eventForParticle = new WorldEvent() { position = TranslatePosition(ledWorld, particlesWorld, hit) };
-
-            if (NeedClickRipple)
-            {
-                glow.transform.position = hit;
-                glowps.Play();
-                ripple.transform.position = eventForParticle.position;
-                rippleps.Play();
-            }
-
-            if (NeedObjectVox)
-            {
-                vox.OnEvent(eventForObj);
-                foreach (IMeshEventListener l in liss)
-                    l.MeshObjectOnEvent(eventForObj);
-            }
-            if (NeedParticleVox)
-            {
-                pvox.OnEvent(eventForParticle);
-                foreach (IParticleEventListener l in pliss)
-                    l.ParticleObjectOnEvent(eventForParticle);
-            }
+            OnInteractionInput(
+                new WorldEvent { position = hit, gesture = KinectGestures.Gestures.Wave });
         }
     }
 
@@ -290,6 +270,10 @@ public abstract class DefaultVoxManager : MonoBehaviour {
         if (NeedEmulator)
         {
             emulator.showLed();
+        }
+        if (NeedInteraction)
+        {
+            interaction.UpdateInfo();
         }
         if (bridge != null)
         {
@@ -341,6 +325,80 @@ public abstract class DefaultVoxManager : MonoBehaviour {
             extend1.z / b1.extents.z * b2.extents.z);
         return b2.center + extend2;
     }
+
+    public void OnInteractionInput(WorldEvent e)
+    {
+        Vector3 hit = e.position;
+        WorldEvent eventForObj = null, eventForParticle = null;
+
+        // translate to the obj and particle world position and OnEvent()
+        eventForObj = new WorldEvent()
+        {
+            position = TranslatePosition(ledWorld, objectsWorld, hit),
+            gesture = e.gesture
+        };
+        eventForParticle = new WorldEvent()
+        {
+            position = TranslatePosition(ledWorld, particlesWorld, hit),
+            gesture = e.gesture
+        };
+
+        if (NeedClickRipple)
+        {
+            glow.transform.position = hit;
+            glowps.Play();
+            ripple.transform.position = eventForParticle.position;
+            rippleps.Play();
+        }
+
+        if (NeedObjectVox)
+        {
+            vox.OnInteractionInput(eventForObj);
+            foreach (IMeshEventListener l in liss)
+                l.OnInteractionInput(eventForObj);
+        }
+        if (NeedParticleVox)
+        {
+            pvox.OnInteractionInput(eventForParticle);
+            foreach (IParticleEventListener l in pliss)
+                l.OnInteractionInput(eventForParticle);
+        }
+    }
+
+    public void OnCrowdInfo(CrowdInfo[] infos)
+    {
+        if (NeedObjectVox)
+        {
+            vox.OnCrowdInfo(infos);
+            foreach (IMeshEventListener l in liss)
+                l.OnCrowdInfo(infos);
+        }
+        if (NeedParticleVox)
+        {
+            pvox.OnCrowdInfo(infos);
+            foreach (IParticleEventListener l in pliss)
+                l.OnCrowdInfo(infos);
+        }
+    }
+
+    public void OnCrowdInfoSummry(CrowdInfoSummry summary)
+    {
+        //Debug.Log("age" + summary.ageAverage + "child" + summary.childrenRatio + "gender" + summary.genderRatio + "total" + summary.total);
+
+        if (NeedObjectVox)
+        {
+            vox.OnCrowdInfoSummry(summary);
+            foreach (IMeshEventListener l in liss)
+                l.OnCrowdInfoSummry(summary);
+        }
+        if (NeedParticleVox)
+        {
+            pvox.OnCrowdInfoSummry(summary);
+            foreach (IParticleEventListener l in pliss)
+                l.OnCrowdInfoSummry(summary);
+        }
+    }
+
 
     // SVG examples 
     //SVGManager.construct();

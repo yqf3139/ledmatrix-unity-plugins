@@ -413,7 +413,7 @@ public class VoxManager : MonoBehaviour
         if (ledWorld.IntersectRay(ray, out dis))
         {
             Vector3 hit = ray.origin + dis * Vector3.Normalize(ray.direction);
-            Debug.Log("ray " + hit + " " + Input.mousePosition);
+            //Debug.Log("ray " + hit + " " + Input.mousePosition);
 
             glow.transform.position = hit;
 
@@ -423,10 +423,10 @@ public class VoxManager : MonoBehaviour
 
             glowps.Play();
 
-            vox.OnEvent(eventForObj);
+            vox.OnInteractionInput(eventForObj);
             ripple.transform.position = eventForParticle.position;
             rippleps.Play();
-            pvox.OnEvent(eventForParticle);
+            pvox.OnInteractionInput(eventForParticle);
         }
     }
 
@@ -473,7 +473,7 @@ public class VoxManager : MonoBehaviour
             bridge.dispose();
         }
         vox.OnDisable();
-        ////ledseq.close();
+        //ledseq.close();
         if (touchControlThread != null)
         {
             touchControlThread.Interrupt();

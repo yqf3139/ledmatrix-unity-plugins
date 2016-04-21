@@ -6,8 +6,7 @@ using UnityEngine;
 
 public class WorldEvent
 {
-    public enum Type { Default };
     public Vector3 position;
-    public Type type;
+    public KinectGestures.Gestures gesture;
 }
 

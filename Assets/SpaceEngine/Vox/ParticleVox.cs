@@ -23,7 +23,17 @@ public abstract class ParticleVox : Vox, UpdateLedHander
         return d;
     }
 
-    public override void OnEvent(WorldEvent e)
+    public override void OnInteractionInput(WorldEvent e)
+    {
+
+    }
+
+    public override void OnCrowdInfo(CrowdInfo[] infos)
+    {
+
+    }
+
+    public override void OnCrowdInfoSummry(CrowdInfoSummry summary)
     {
 
     }

@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-using UnityEngine;
 
 public class SwimDolphinDemo : MonoBehaviour, IMeshEventListener {
 
@@ -9,18 +8,6 @@ public class SwimDolphinDemo : MonoBehaviour, IMeshEventListener {
 
     Bounds objectsWorld;
     Vector3 fishvelocity;
-
-    public void MeshObjectOnEvent(WorldEvent e)
-    {
-        fishvelocity = 5 * WalkVelocity(e.position, transform.position);
-        Quaternion q = transform.rotation;
-        Vector3 v = e.position - objectsWorld.center;
-        v.y = 0;
-        v = Vector3.Normalize(v);
-        float angle = v.z > 0 ? Mathf.Acos(v.x) : 2 * Mathf.PI - Mathf.Acos(v.x);
-        q.eulerAngles = new Vector3(90, 360f - 360f * angle / (2 * Mathf.PI), 0);
-        transform.rotation = q;
-    }
 
     public void MeshObjectUpdate(MeshObjectUpdateStatus status)
     {
@@ -35,7 +22,6 @@ public class SwimDolphinDemo : MonoBehaviour, IMeshEventListener {
             //q.y = 270f - 360f * angle;
             q.eulerAngles = new Vector3(90, 360f - 360f * angle / (2 * Mathf.PI), 0);
             transform.rotation = q;
-            Debug.Log("new dir");
         }
     }
 
@@ -62,5 +48,41 @@ public class SwimDolphinDemo : MonoBehaviour, IMeshEventListener {
         Vector3 tmp = b.max - b.min;
         Vector3 des = b.min + new Vector3(tmp.x * (float)rand.NextDouble(), tmp.y * (float)rand.NextDouble(), tmp.z * (float)rand.NextDouble());
         return Vector3.Normalize(des - p);
+    }
+
+    public void OnInteractionInput(WorldEvent e)
+    {
+        switch (e.gesture)
+        {
+            case KinectGestures.Gestures.Wave:
+            case KinectGestures.Gestures.SwipeLeft:
+            case KinectGestures.Gestures.SwipeRight:
+            case KinectGestures.Gestures.SwipeUp:
+            case KinectGestures.Gestures.SwipeDown:
+            case KinectGestures.Gestures.Push:
+            case KinectGestures.Gestures.Pull:
+                break;
+            default:
+                return;
+        }
+
+        fishvelocity = 5 * WalkVelocity(e.position, transform.position);
+        Quaternion q = transform.rotation;
+        Vector3 v = e.position - objectsWorld.center;
+        v.y = 0;
+        v = Vector3.Normalize(v);
+        float angle = v.z > 0 ? Mathf.Acos(v.x) : 2 * Mathf.PI - Mathf.Acos(v.x);
+        q.eulerAngles = new Vector3(90, 360f - 360f * angle / (2 * Mathf.PI), 0);
+        transform.rotation = q;
+    }
+
+    public void OnCrowdInfo(CrowdInfo[] infos)
+    {
+
+    }
+
+    public void OnCrowdInfoSummry(CrowdInfoSummry summary)
+    {
+
     }
 }

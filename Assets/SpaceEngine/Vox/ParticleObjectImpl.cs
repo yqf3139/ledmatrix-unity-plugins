@@ -188,3 +188,29 @@ public class ParticleSystemObjectGravityImpl : ParticleSystemObjectImpl
         PlayInArea(center, area);
     }
 }
+
+public class ParticleSystemObjectContinuousImpl : ParticleSystemObjectImpl
+{
+    public ParticleSystemObjectContinuousImpl(Bounds b, ParticleSystem ps, Vector2 heightRange, bool needTranslate = false)
+        : base(b, ps, heightRange, needTranslate)
+    {
+    }
+
+    public override void ParticleObjectPlay(float height, float time, Vector2 center, Vector2 area)
+    {
+        Debug.Log("playing" + root);
+        if (root.isPlaying)
+        {
+            return;
+        }
+        root.Play();
+        new Thread(() =>
+        {
+            Thread.Sleep(5 * 1000);
+            Loom.QueueOnMainThread(() =>
+            {
+                root.Stop();
+            });
+        }).Start();
+    }
+}

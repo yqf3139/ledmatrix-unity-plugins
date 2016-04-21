@@ -34,7 +34,7 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
     Thread randomEffectsControlThread;
 
     IParticleObject[] po = new IParticleObject[9];
-    IParticleObject[] randomEffects = new IParticleObject[3];
+    IParticleObject[] randomEffects = new IParticleObject[8];
     IParticleObject fishSplash;
 
     UpSwimFish fish;
@@ -152,7 +152,7 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
             new Region() { center = new Vector2(-centerstep, -centerstep), area = new Vector2(rangestep,rangestep) },
         };
 
-        for (int i = 0; i < 9; i++)
+        for (int i = 0; i < po.Length; i++)
         {
             GameObject go = GameObject.Find("/PS" + i);
             if (go == null)
@@ -161,7 +161,7 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
             }
             po[i] = go.GetComponent<IParticleObject>();
         }
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < randomEffects.Length; i++)
         {
             GameObject go = GameObject.Find("/Random" + i);
             if (go == null)
@@ -202,24 +202,13 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
         }
     }
 
-    public void ParticleObjectOnEvent(WorldEvent e)
-    {
-        Debug.Log("play " + idx%3);
-        if (po[idx%3] != null)
-        {
-            po[idx % 3].ParticleObjectPlay(0.5f, 2f, regions[idx%4].center, regions[idx%4].area);
-        }
-        idx++; // po.Length;
-        lastEffectTimeStamp = UnixTimeNow();
-    }
-
     void emitRandomEffects()
     {
-        Debug.Log("play random " + idx % 3);
+        Debug.Log("play random " + idx % randomEffects.Length);
         int r = rand.Next(0, randomEffects.Length);
-        if (randomEffects[r] != null)
+        if (randomEffects[idx % randomEffects.Length] != null)
         {
-            randomEffects[r].ParticleObjectPlay(0.5f, 2f, regions[idx % 4].center, regions[idx % 4].area);
+            randomEffects[idx % randomEffects.Length].ParticleObjectPlay(0.5f, 2f, regions[idx % 4].center, regions[idx % 4].area);
         }
         idx++; // po.Length;
         lastEffectTimeStamp = UnixTimeNow();
@@ -240,5 +229,26 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
     {
         TimeSpan timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0));
         return (long)timeSpan.TotalSeconds;
+    }
+
+    public void OnInteractionInput(WorldEvent e)
+    {
+        Debug.Log("play " + idx % 3);
+        if (po[idx % 5] != null)
+        {
+            po[idx % 5].ParticleObjectPlay(0.5f, 2f, regions[idx % 4].center, regions[idx % 4].area);
+        }
+        idx++; // po.Length;
+        lastEffectTimeStamp = UnixTimeNow();
+    }
+
+    public void OnCrowdInfo(CrowdInfo[] infos)
+    {
+
+    }
+
+    public void OnCrowdInfoSummry(CrowdInfoSummry summary)
+    {
+
     }
 }

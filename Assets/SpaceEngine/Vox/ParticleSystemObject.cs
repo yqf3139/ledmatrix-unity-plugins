@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public enum ParticleSystemEmitMode { NORMAL, GRAVITY, FIREWORK }
+public enum ParticleSystemEmitMode { NORMAL, GRAVITY, FIREWORK, CONTINUOUS}
 
 public class ParticleSystemObject : MonoBehaviour, IParticleObject
 {
@@ -22,7 +22,6 @@ public class ParticleSystemObject : MonoBehaviour, IParticleObject
     void Start()
     {
         bounds = new Bounds(center, 2 * extend * DefaultVoxManager.getDefault().getRatio());
-        Debug.Log(DefaultVoxManager.getDefault());
         ps = GetComponent<ParticleSystem>();
 
         switch (mode)
@@ -35,6 +34,9 @@ public class ParticleSystemObject : MonoBehaviour, IParticleObject
                 break;
             case ParticleSystemEmitMode.FIREWORK:
                 impl = new ParticleSystemObjectFireworksImpl(bounds, ps, heightRange, needTranslation);
+                break;
+            case ParticleSystemEmitMode.CONTINUOUS:
+                impl = new ParticleSystemObjectContinuousImpl(bounds, ps, heightRange, needTranslation);
                 break;
             default:
                 throw new NotImplementedException();
