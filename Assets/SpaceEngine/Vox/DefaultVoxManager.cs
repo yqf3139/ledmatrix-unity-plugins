@@ -20,7 +20,6 @@ public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
     public bool NeedAutoSearch = true;
     public bool NeedGradientColor = false;
     public bool NeedRegister = true;
-    public bool NeedInteraction = true;
 
     public int fillColor = 0x7f7f7f00;
 
@@ -58,7 +57,6 @@ public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
     LedMatrix bridge = null;
     ParticleVox pvox = null;
     MeshVox vox = null;
-    LEDInteractionManager interaction = null;
 
     protected abstract void initConfig();
     protected abstract void initBounds();
@@ -205,18 +203,13 @@ public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
             marker.transform.position = ledWorld.center;
         }
 
-        if (NeedInteraction)
-        {
-            interaction = new LEDInteractionManager(emulator, this);
-        }
-
         if (NeedBridge)
         {
             bridge = initBridge(ledseq);
         }
     }
 
-    public virtual void onTouch(Vector3 e)
+    public virtual void onTouch(Vector3 e, KinectGestures.Gestures g)
     {
         Ray ray = Camera.main.ScreenPointToRay(e);
 
@@ -226,7 +219,7 @@ public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
             Vector3 hit = ray.origin + dis * Vector3.Normalize(ray.direction);
 
             OnInteractionInput(
-                new WorldEvent { position = hit, gesture = KinectGestures.Gestures.Wave });
+                new WorldEvent { position = hit, gesture = g });
         }
     }
 
@@ -248,9 +241,27 @@ public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
     void Update ()
     {
         // use cam-mouse ray to cal the led world position
-        if (NeedEmulator && Need2DClick && Input.GetButtonDown("Fire1"))
+        if (NeedEmulator && Need2DClick)
         {
-            onTouch(Input.mousePosition);
+            if (Input.GetButtonDown("Fire1"))
+            {
+                //onTouch(Input.mousePosition, KinectGestures.Gestures.Wave);
+                onTouch(Input.mousePosition, KinectGestures.Gestures.RaiseRightHand);
+            }
+            else if (Input.GetButtonDown("Fire2"))
+            {
+                onTouch(Input.mousePosition, KinectGestures.Gestures.SwipeDown);
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                onTouch(Input.mousePosition, KinectGestures.Gestures.SwipeLeft);
+                Debug.Log("swipe left");
+            }
+            else if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                onTouch(Input.mousePosition, KinectGestures.Gestures.SwipeRight);
+                Debug.Log("swipe right");
+            }
         } 
 
         // update real ledseq data and serialize data
@@ -270,10 +281,6 @@ public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
         if (NeedEmulator)
         {
             emulator.showLed();
-        }
-        if (NeedInteraction)
-        {
-            interaction.UpdateInfo();
         }
         if (bridge != null)
         {
@@ -384,7 +391,6 @@ public abstract class DefaultVoxManager : MonoBehaviour, IInteractionInput {
     public void OnCrowdInfoSummry(CrowdInfoSummry summary)
     {
         //Debug.Log("age" + summary.ageAverage + "child" + summary.childrenRatio + "gender" + summary.genderRatio + "total" + summary.total);
-
         if (NeedObjectVox)
         {
             vox.OnCrowdInfoSummry(summary);

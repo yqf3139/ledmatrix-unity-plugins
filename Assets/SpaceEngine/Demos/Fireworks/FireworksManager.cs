@@ -179,7 +179,7 @@ public class FireworksManager : MonoBehaviour, IParticleEventListener {
         fish = GameObject.Find("transformFizzBait").GetComponent<UpSwimFish>();
 
         touchControlThread = new Thread(touchControl);
-        //touchControlThread.Start();
+        touchControlThread.Start();
         randomEffectsControlThread = new Thread(randomEffectsControl);
         randomEffectsControlThread.Start();
     }

@@ -5,6 +5,8 @@ using System.Collections;
 public class MouseOrbitImproved : MonoBehaviour
 {
     public Transform target;
+    public Transform followTarget;
+
     public float distance = 200f;
     public float xSpeed = 1.0f;
     public float ySpeed = 120.0f;
@@ -23,8 +25,6 @@ public class MouseOrbitImproved : MonoBehaviour
 
     float x = 0.0f;
     float y = 0.0f;
-
-    
 
     // Use this for initialization
     void Start()
@@ -49,6 +49,13 @@ public class MouseOrbitImproved : MonoBehaviour
         {
             if (!manualMove && !autoMove)
             {
+                if (followTarget != null)
+                {
+                    Vector3 dir = 50 * Vector3.Normalize(followTarget.position - target.position);
+                    dir.y = 200;
+                    transform.position = followTarget.position + dir;
+                    transform.LookAt(target);
+                }
                 return;
             }
 

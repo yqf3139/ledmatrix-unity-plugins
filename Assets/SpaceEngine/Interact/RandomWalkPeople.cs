@@ -4,28 +4,18 @@ using System;
 
 public enum RandomWalkPeopleStatus { WALK, STOP }
 
-public class RandomWalkPeople : MonoBehaviour {
-
-    public static int NextID = 0;
-
-    public int id = 0;
-    public int gender = 0;
-    public int age = 20;
-    public int children = 0;
-    public double lifeEndTime;
-
-    Vector3 center;
+public class RandomWalkPeople : WalkPeople
+{
     float stopTime = 0;
     float stopThreshold = 10f;
     float speed = 100f;
-    float far;
-    float near;
-    float mid;
-    float far2;
-    float near2;
-    float mid2;
 
-    IInteractionInput input;
+    float feedWaitTime = 0;
+    float feedWaitThreshold = 2f;
+
+    bool isFeeding = false;
+
+    public double lifeEndTime;
 
     Vector3 towards;
     Vector3 target;
@@ -38,15 +28,15 @@ public class RandomWalkPeople : MonoBehaviour {
         //KinectGestures.Gestures.None,
         //KinectGestures.Gestures.RaiseRightHand,
         //KinectGestures.Gestures.RaiseLeftHand,
-        KinectGestures.Gestures.Stop,
+        //KinectGestures.Gestures.Stop,
         KinectGestures.Gestures.Wave,
         //KinectGestures.Gestures.SwipeLeft,
         //KinectGestures.Gestures.SwipeRight,
         //KinectGestures.Gestures.SwipeUp,
         //KinectGestures.Gestures.SwipeDown,
         KinectGestures.Gestures.Jump,
-        KinectGestures.Gestures.Push,
-        KinectGestures.Gestures.Pull,
+        //KinectGestures.Gestures.Push,
+        //KinectGestures.Gestures.Pull,
     };
 
     KinectGestures.Gestures action
@@ -57,41 +47,9 @@ public class RandomWalkPeople : MonoBehaviour {
         }
     }
 
-    System.Random rand = new System.Random(NextID);
-
-    GameObject text;
-    TextMesh tmesh;
-
-    public void init (Vector3 center, float r0, float r1, float r2, IInteractionInput input)
-    {
-        rand = new System.Random(NextID);
-        id = NextID;
-        NextID++;
-
-        this.center = center;
-        near = r0;
-        mid = r1;
-        far = r2;
-        near2 = near*near;
-        mid2 = mid*mid;
-        far2 = far*far;
-
-        this.input = input;
-
-        text = new GameObject("text");
-        tmesh = text.AddComponent<TextMesh>();
-        tmesh.text = "test";
-        tmesh.fontSize = 500;
-        text.transform.parent = transform;
-        text.transform.position = transform.position + new Vector3(0f, 200f, 0f);
-        text.SetActive(false);
-    }
-
     public void attr(int gender, int age, int children, double lifeEndTime)
     {
-        this.gender = gender;
-        this.age = age;
-        this.children = children;
+        base.attr(gender, age, children);
         this.lifeEndTime = lifeEndTime;
     }
 
@@ -138,11 +96,25 @@ public class RandomWalkPeople : MonoBehaviour {
                     transform.eulerAngles = new Vector3(0, lookAtAngle.y, lookAtAngle.z);
                     if (dis < mid2)
                     {
-                        doAction();
+                        int toFeed = rand.Next(10);
+
+                        if (toFeed < 8)
+                        {
+                            // other actions
+                            doAction();
+                        }
+                        else
+                        {
+                            // feed actions
+                            feed();
+                        }
                     }
                 }
                 break;
             case RandomWalkPeopleStatus.STOP:
+                if (isFeeding)
+                    feed();
+
                 stopTime += Time.deltaTime;
                 if (stopThreshold < stopTime)
                 {
@@ -157,18 +129,41 @@ public class RandomWalkPeople : MonoBehaviour {
 
     }
 
-    public bool visible()
+    void feed()
     {
-        return dis2() < mid2;
+        if (!isFeeding)
+        {
+            isFeeding = true;
+            feedWaitTime = 0f;
+            input.OnInteractionInput(
+                new WorldEvent { position = transform.position, gesture = KinectGestures.Gestures.RaiseRightHand });
+            showText(KinectGestures.Gestures.RaiseRightHand.ToString());
+        }
+        else
+        {
+            feedWaitTime += Time.deltaTime;
+            if (feedWaitTime > feedWaitThreshold)
+            {
+                isFeeding = false;
+                input.OnInteractionInput(
+                    new WorldEvent { position = transform.position, gesture = KinectGestures.Gestures.SwipeDown });
+                showText(KinectGestures.Gestures.SwipeDown.ToString());
+            }
+        }
     }
 
-    void doAction()
+    void showText(string action)
     {
         text.transform.LookAt(text.transform.position + Camera.main.transform.rotation * Vector3.forward,
             Camera.main.transform.rotation * Vector3.up);
         text.SetActive(true);
+        tmesh.text = "" + action;
+    }
 
+    void doAction()
+    {
         KinectGestures.Gestures a = action;
+        showText(action.ToString());
 
         switch (a)
         {
@@ -202,8 +197,6 @@ public class RandomWalkPeople : MonoBehaviour {
 
         input.OnInteractionInput(
             new WorldEvent { position = transform.position, gesture = a });
-
-        tmesh.text = "" + a;
     }
 
     private bool reachTarget(Vector3 start, Vector3 target)
@@ -255,11 +248,6 @@ public class RandomWalkPeople : MonoBehaviour {
         transform.eulerAngles = new Vector3(0, lookAtAngle.y, lookAtAngle.z);
     }
 
-    float dis2()
-    {
-        Vector3 pos = transform.position - center;
-        return pos.x * pos.x + pos.z * pos.z;
-    }
     //people[i].transform.LookAt(emulatorBounds.center);
     //Vector3 lookAtAngle = people[i].transform.eulerAngles;
     //people[i].transform.eulerAngles = new Vector3(0, lookAtAngle.y, lookAtAngle.z);

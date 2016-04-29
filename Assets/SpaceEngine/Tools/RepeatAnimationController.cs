@@ -30,18 +30,19 @@ public class RepeatAnimationController : MonoBehaviour {
         a.Play(ii.Current);
         // animate in batchmode
         a.cullingType = AnimationCullingType.AlwaysAnimate;
+
+        foreach (AnimationState aa in a)
+            a[aa.name].wrapMode = WrapMode.Once;
     }
 
     // Update is called once per frame
     void Update () {
-
         if (a.isPlaying)
         {
         }
         else
         {
             ii.MoveNext();
-            a[ii.Current].wrapMode = WrapMode.Once;
             a.Play(ii.Current);
             Debug.LogError(ii.Current);
         }

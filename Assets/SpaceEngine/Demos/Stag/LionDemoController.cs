@@ -1,26 +1,32 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
+using System.Collections;
 
-public class StagDemoController : AnimalDemoController {
+public class LionDemoController : AnimalDemoController {
 
     // Use this for initialization
-    public override void Start () {
+    public override void Start()
+    {
         base.Start();
     }
 
     // Update is called once per frame
-    public override void Update () {
+    public override void Update()
+    {
         base.Update();
     }
 
     public override void PlayDefault()
     {
-        a.Play("Take 001");
+        a.Play("idle");
     }
 
     public override void OnInteractionInput(WorldEvent e)
     {
-        if (a.isPlaying && !a.IsPlaying("Take 001"))
+        if (!gameObject.activeSelf)
+        {
+            return;
+        }
+        if (a.isPlaying && !a.IsPlaying("idle"))
         {
             return;
         }
@@ -31,13 +37,11 @@ public class StagDemoController : AnimalDemoController {
                 break;
             case KinectGestures.Gestures.Wave:
                 a.Play("walk");
-                a["Take 001"].speed = 10f;
-                a.PlayQueued("Take 001");
+                a.PlayQueued("idle");
                 break;
             case KinectGestures.Gestures.Jump:
                 a.Play("run");
-                a["Take 001"].speed = 10f;
-                a.PlayQueued("Take 001");
+                a.PlayQueued("idle");
                 break;
             case KinectGestures.Gestures.Push:
                 //a.Play("hornAttack1");
@@ -53,11 +57,6 @@ public class StagDemoController : AnimalDemoController {
 
     }
 
-    public override bool isActionDone()
-    {
-        return !(a.isPlaying && !a.IsPlaying("Take 001"));
-    }
-
     public override void Eat(GameObject food, Vector3 dir)
     {
         if (isEatting)
@@ -69,7 +68,13 @@ public class StagDemoController : AnimalDemoController {
             return;
         }
         base.Eat(food, dir);
-        a.Play("idle1");
-        a.PlayQueued("Take 001");
+        a.Play("bite");
+        a.PlayQueued("bite");
+        a.PlayQueued("idle");
+    }
+
+    public override bool isActionDone()
+    {
+        return !(a.isPlaying && !a.IsPlaying("idle"));
     }
 }

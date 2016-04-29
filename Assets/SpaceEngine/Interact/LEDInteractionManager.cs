@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using System;
 
 public class CrowdInfo
@@ -25,41 +26,32 @@ public interface IInteractionInput
     void OnCrowdInfoSummry(CrowdInfoSummry summary);
 }
 
-public class LEDInteractionManager {
+public class LEDInteractionManager : MonoBehaviour {
 
-    static System.Random rand = new System.Random(DateTime.Now.Millisecond);
-
-    public float updateInfoTime = 0;
-    public float updatePeopleTime = 0;
     public float updateInfoInterval = 0.1f;
-    public float updatePeopleInterval = 1f;
 
-    public int peopleCountOnStartup = 10;
-    public float peopleStayTimeBase = 10;
-    public float peopleStayTimeRange = 10;
-    public int peopleCountMax = 50;
-    public int peopleCountMin = 5;
-    public int peopleEmitCount = 1;
+    protected IInteractionInput input;
+    protected Bounds emulatorBounds;
+    protected Transform arrow;
+    protected float r, r0, r1, r2;
+    protected float updateInfoTime = 0;
+    protected Vector3 pos;
+    protected GameObject[] rings = new GameObject[3];
+    protected List<WalkPeople> people = new List<WalkPeople>();
+    protected GameObject[] models = new GameObject[4];
 
-    LedMatrix emulator;
-    IInteractionInput input;
-    Bounds emulatorBounds;
-    GameObject[] rings = new GameObject[3];
-    GameObject[] models = new GameObject[4];
+    bool init = true;
 
-    List<RandomWalkPeople> people = new List<RandomWalkPeople>();
-    Vector3 pos;
+    // Use this for initialization
+    void Start () {
+	
+	}
 
-    float r, r0, r1, r2;
-
-    Transform arrow;
-
-    public LEDInteractionManager(LedMatrix emulator, IInteractionInput input)
+    // Use this for initialization
+    virtual protected void start()
     {
-        this.emulator = emulator;
-        this.input = input;
-        emulatorBounds = emulator.getLedBound();
-
+        input = DefaultVoxManager.getDefault();
+        emulatorBounds = DefaultVoxManager.getDefault().ledWorld;
         arrow = GameObject.Find("Arrow").transform;
 
         GameObject ring = GameObject.Find("RingPro");
@@ -81,8 +73,9 @@ public class LEDInteractionManager {
         rings[1].transform.localScale = Vector3.one * r1;
         rings[2].transform.localScale = Vector3.one * r2;
 
-        float near = r0 * 100f;
-        float far =  r2 * 100f;
+
+        //float near = r0 * 100f;
+        //float far = r2 * 100f;
 
         //GameObject woman = GameObject.Find("Human_Women");
         models[0] = (GameObject)GameObject.Instantiate(Resources.Load("Human_Woman"), Vector3.zero, Quaternion.identity);
@@ -92,66 +85,17 @@ public class LEDInteractionManager {
 
         foreach (GameObject m in models)
             m.SetActive(false);
-
-        for (int i = 0; i < peopleCountOnStartup; i++)
-            emitPeople();
-
     }
 
-    void emitPeople()
-    {
-        int gender = rand.Next(2);
-        int age = rand.Next(3, 30);
-        int idx = gender * 2 + (age < 15 ? 1 : 0);
-        GameObject go = GameObject.Instantiate(models[idx], pos, Quaternion.identity) as GameObject;
-        go.SetActive(true);
-
-        go.name = "People" + RandomWalkPeople.NextID;
-
-        RandomWalkPeople walker  = go.GetComponent<RandomWalkPeople>();
-
-        walker.init(pos, r0 * 100f, r1 * 100f, r2 * 100f, input);
-        walker.attr(gender, age, (age < 15 ? 1 : 0), Time.realtimeSinceStartup + peopleStayTimeBase + rand.NextDouble() * peopleStayTimeRange);
-
-        go.transform.position = walker.getTarget(1);
-        walker.setTarget(walker.getTarget(1));
-        people.Add(walker);
-    }
-
-    public void UpdateInfo()
-    {
-        updateInfoTime += Time.deltaTime;
-        updatePeopleTime += Time.deltaTime;
-
-        if (updatePeopleTime > updatePeopleInterval)
+    // Update is called once per frame
+    public virtual void Update () {
+        if (init)
         {
-            updatePeopleTime = 0;
-            float now = Time.realtimeSinceStartup;
-
-            people.RemoveAll(p => {
-                if (p.lifeEndTime < now)
-                    p.leave();
-                return p.lifeEndTime < now;
-            });
-
-            for (int i = 0; i < peopleEmitCount; i++)
-            {
-                emitPeople();
-            }
-
-            while (people.Count > peopleCountMax)
-            {
-                RandomWalkPeople p = people.ElementAt(0);
-                people.RemoveAt(0);
-                p.leave();
-            }
-
-            while (people.Count < peopleCountMin)
-            {
-                emitPeople();
-            }
+            init = false;
+            start();
         }
 
+        updateInfoTime += Time.deltaTime;
         if (updateInfoTime > updateInfoInterval)
         {
             updateInfoTime = 0;
@@ -162,20 +106,21 @@ public class LEDInteractionManager {
             int children = 0;
 
             Vector3 dir = new Vector3();
-            foreach (RandomWalkPeople p in people)
+            foreach (WalkPeople p in people)
             {
                 if (!p.visible())
                 {
                     continue;
                 }
                 total++;
-                dir += Vector3.Normalize( p.transform.position - pos );
+                dir += Vector3.Normalize(p.transform.position - pos);
                 male += p.gender;
                 age += p.age;
                 children += p.children;
             }
 
-            dir = Vector3.Normalize(dir);
+            if (total == 0) dir = Vector3.right;
+            else dir = Vector3.Normalize(dir);
 
             input.OnCrowdInfo(null);
             input.OnCrowdInfoSummry(new CrowdInfoSummry()
